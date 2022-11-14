@@ -22,7 +22,7 @@ func GetHTTPServerTLSConfig() *tls.Config {
 	caCertPool.AppendCertsFromPEM(caCert)
 
 	return &tls.Config{
-		ServerName: "auth",
+		ServerName: "ads",
 		ClientAuth: tls.RequireAndVerifyClientCert,
 		ClientCAs:  caCertPool,
 		MinVersion: tls.VersionTLS12, // TLS versions below 1.2 are considered insecure - see https://www.rfc-editor.org/rfc/rfc7525.txt for details

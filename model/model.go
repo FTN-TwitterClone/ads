@@ -12,15 +12,39 @@ type AuthUser struct {
 	Exp      time.Time
 }
 
-type Tweet struct {
-	ID        gocql.UUID `json:"id"`
-	Username  string     `json:"username"`
-	Text      string     `json:"text"`
-	Timestamp time.Time  `json:"timestamp"`
-	//Photo  string `json:"photo"` TODO save photo to db
+type TweetLikedEvent struct {
+	Username string
+	TweetId  gocql.UUID
+	Time     time.Time
 }
 
-type Like struct {
-	Username string     `json:"username"`
-	TweetId  gocql.UUID `json:"tweet_id" validate:"required"`
+type TweetUnlikedEvent struct {
+	Username string
+	TweetId  gocql.UUID
+	Time     time.Time
+}
+
+type TweetViewedEvent struct {
+	Username string
+	TweetId  gocql.UUID
+	ReadTime int32
+	Time     time.Time
+}
+
+type ProfileVisitedEvent struct {
+	Username string
+	TweetId  gocql.UUID
+	Time     time.Time
+}
+
+type Report struct {
+	Id                   gocql.UUID `json:"id"`
+	TweetId              gocql.UUID `json:"tweetId"`
+	From                 time.Time  `json:"from"`
+	To                   time.Time  `json:"to"`
+	TimeGenerated        time.Time  `json:"timeGenerated"`
+	TweetsLiked          int        `json:"tweetsLiked"`
+	TweetsUnliked        int        `json:"tweetsUnliked"`
+	AverageTweetViewTime int        `json:"averageTweetViewTime"`
+	ProfileVisits        int        `json:"profileVisits"`
 }

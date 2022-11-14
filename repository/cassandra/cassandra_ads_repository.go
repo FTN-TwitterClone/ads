@@ -8,9 +8,11 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/cassandra"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 	"log"
 	"os"
+	"time"
 )
 
 type CassandraAdsRepository struct {
@@ -41,6 +43,7 @@ func NewCassandraAdsRepository(tracer trace.Tracer) (*CassandraAdsRepository, er
 	session, err := cluster.CreateSession()
 	//defer session.Close()
 	if err != nil {
+		log.Fatal(err)
 		return nil, err
 	}
 
@@ -65,6 +68,7 @@ func initKeyspace() error {
 	defer session.Close()
 
 	if err != nil {
+		log.Fatal(err)
 		return err
 	}
 
@@ -72,6 +76,7 @@ func initKeyspace() error {
 
 	err = session.Query("CREATE KEYSPACE IF NOT EXISTS ads_database WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1}").Exec()
 	if err != nil {
+		log.Fatal(err)
 		return err
 	}
 
@@ -81,38 +86,67 @@ func initKeyspace() error {
 func migrateDB() error {
 	dbport := os.Getenv("DBPORT")
 	db := os.Getenv("DB")
-	connString := fmt.Sprintf("cassandra://%s:%s/ads_database", db, dbport)
+	connString := fmt.Sprintf("cassandra://%s:%s/ads_database?x-multi-statement=true", db, dbport)
 
 	m, err := migrate.New("file://migrations", connString)
 	if err != nil {
 		log.Fatal(err)
+		return err
 	}
 
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		log.Fatal(err)
+		return err
 	}
 
 	return nil
 }
 
-func (r *CassandraAdsRepository) SaveTweet(ctx context.Context, tweet *model.Tweet) error {
-	_, span := r.tracer.Start(ctx, "CassandraAdsRepository.SaveTweet")
+func (r *CassandraAdsRepository) SaveTweetLikedEvent(ctx context.Context, tweetLikedEvent *model.TweetLikedEvent) error {
+	_, span := r.tracer.Start(ctx, "CassandraAdsRepository.SaveTweetLikedEvent")
 	defer span.End()
 
-	err := r.session.Query("INSERT INTO tweets (id, username, text, timestamp) VALUES (?, ?, ?, ?)").
-		Bind(tweet.ID, tweet.Username, tweet.Text, tweet.Timestamp).
+	err := r.session.Query("INSERT INTO likesAdded (id, tweetId, username, time) VALUES (?, ?, ?, ?)").
+		Bind(gocql.TimeUUID(), tweetLikedEvent.TweetId, tweetLikedEvent.Username, tweetLikedEvent.Time.String()).
 		Exec()
 
-	return err
+	if err != nil {
+
+	}
+
+	return nil
 }
 
-func (r *CassandraAdsRepository) SaveLike(ctx context.Context, like *model.Like) error {
-	_, span := r.tracer.Start(ctx, "CassandraAdsRepository.SaveLike")
+func (r *CassandraAdsRepository) SaveProfileVisitedEvent(ctx context.Context, profileVisitedEvent *model.ProfileVisitedEvent) error {
+	_, span := r.tracer.Start(ctx, "CassandraAdsRepository.SaveTweetLikedEvent")
 	defer span.End()
 
-	err := r.session.Query("INSERT INTO likes (username, tweet_id) VALUES (?, ?)").
-		Bind(like.Username, like.TweetId).
+	err := r.session.Query("INSERT INTO profileVisits (id, tweetId, username, time) VALUES (?, ?, ?, ?)").
+		Bind(gocql.TimeUUID(), profileVisitedEvent.TweetId, profileVisitedEvent.Username, profileVisitedEvent.Time.UnixMilli()).
 		Exec()
 
-	return err
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (r *CassandraAdsRepository) GetProfileVisitsCount(ctx context.Context, from time.Time, to time.Time) (int, error) {
+	_, span := r.tracer.Start(ctx, "CassandraAdsRepository.SaveTweetLikedEvent")
+	defer span.End()
+
+	var visitsCount int
+
+	err := r.session.Query("SELECT COUNT(*) FROM profileVisits WHERE time >= ? AND time < ?").
+		Bind(from.UnixMilli(), to.UnixMilli()).
+		Scan(&visitsCount)
+
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return 0, err
+	}
+
+	return visitsCount, err
 }
