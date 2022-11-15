@@ -48,11 +48,11 @@ func (s *AdsService) AddProfileVisitedEvent(ctx context.Context, tweetId string,
 	return nil
 }
 
-func (s *AdsService) GenerateReport(ctx context.Context, from time.Time, to time.Time) (*model.Report, *app_errors.AppError) {
+func (s *AdsService) GenerateReport(ctx context.Context, tweetId gocql.UUID, from time.Time, to time.Time) (*model.Report, *app_errors.AppError) {
 	serviceCtx, span := s.tracer.Start(ctx, "AdsService.AddProfileVisitedEvent")
 	defer span.End()
 
-	visitsCount, err := s.adsRepository.GetProfileVisitsCount(serviceCtx, from, to)
+	visitsCount, err := s.adsRepository.GetProfileVisitsCount(serviceCtx, tweetId, from, to)
 	if err != nil {
 		span.SetStatus(codes.Error, err.Error())
 		return nil, &app_errors.AppError{500, ""}

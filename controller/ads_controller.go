@@ -3,6 +3,7 @@ package controller
 import (
 	"ads/controller/json"
 	"ads/service"
+	"github.com/gocql/gocql"
 	"github.com/gorilla/mux"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -39,8 +40,10 @@ func (c *AdsController) AddProfileVisitedEvent(w http.ResponseWriter, req *http.
 }
 
 func (c *AdsController) GetReport(w http.ResponseWriter, req *http.Request) {
-	ctx, span := c.tracer.Start(req.Context(), "AdsController.AddProfileVisitedEvent")
+	ctx, span := c.tracer.Start(req.Context(), "AdsController.GetReport")
 	defer span.End()
+
+	tweetIdString := mux.Vars(req)["id"]
 
 	fromInt, err := strconv.ParseInt(mux.Vars(req)["from"], 10, 64)
 	if err != nil {
@@ -56,10 +59,17 @@ func (c *AdsController) GetReport(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	tweetId, err := gocql.ParseUUID(tweetIdString)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		http.Error(w, "", 500)
+		return
+	}
+
 	from := time.UnixMilli(fromInt)
 	to := time.UnixMilli(toInt)
 
-	report, appErr := c.adsService.GenerateReport(ctx, from, to)
+	report, appErr := c.adsService.GenerateReport(ctx, tweetId, from, to)
 	if appErr != nil {
 		span.SetStatus(codes.Error, appErr.Error())
 		http.Error(w, appErr.Message, appErr.Code)

@@ -55,7 +55,7 @@ func main() {
 	)
 
 	router.HandleFunc("/users/{tweetId}/{username}/visit/", adsController.AddProfileVisitedEvent).Methods("POST")
-	router.HandleFunc("/reports/{from}/{to}/", adsController.GetReport).Methods("GET")
+	router.HandleFunc("/ads/{id}/reports/{from}/{to}/", adsController.GetReport).Methods("GET")
 
 	allowedHeaders := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"})

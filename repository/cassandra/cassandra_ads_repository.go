@@ -133,14 +133,14 @@ func (r *CassandraAdsRepository) SaveProfileVisitedEvent(ctx context.Context, pr
 	return nil
 }
 
-func (r *CassandraAdsRepository) GetProfileVisitsCount(ctx context.Context, from time.Time, to time.Time) (int, error) {
-	_, span := r.tracer.Start(ctx, "CassandraAdsRepository.SaveTweetLikedEvent")
+func (r *CassandraAdsRepository) GetProfileVisitsCount(ctx context.Context, tweetId gocql.UUID, from time.Time, to time.Time) (int, error) {
+	_, span := r.tracer.Start(ctx, "CassandraAdsRepository.GetProfileVisitsCount")
 	defer span.End()
 
 	var visitsCount int
 
-	err := r.session.Query("SELECT COUNT(*) FROM profileVisits WHERE time >= ? AND time < ?").
-		Bind(from.UnixMilli(), to.UnixMilli()).
+	err := r.session.Query("SELECT COUNT(*) FROM profileVisits WHERE tweetId = ? AND time >= ? AND time < ? ALLOW FILTERING").
+		Bind(tweetId, from, to).
 		Scan(&visitsCount)
 
 	if err != nil {
