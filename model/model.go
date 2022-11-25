@@ -15,26 +15,22 @@ type AuthUser struct {
 type TweetLikedEvent struct {
 	Username string
 	TweetId  gocql.UUID
-	Time     time.Time
 }
 
 type TweetUnlikedEvent struct {
 	Username string
 	TweetId  gocql.UUID
-	Time     time.Time
 }
 
 type TweetViewedEvent struct {
 	Username string
 	TweetId  gocql.UUID
-	ReadTime int32
-	Time     time.Time
+	ViewTime int32
 }
 
 type ProfileVisitedEvent struct {
 	Username string
 	TweetId  gocql.UUID
-	Time     time.Time
 }
 
 type Report struct {

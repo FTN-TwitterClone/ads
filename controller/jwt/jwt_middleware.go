@@ -1,8 +1,8 @@
 package jwt
 
 import (
-	"ads/model"
 	"context"
+	"github.com/FTN-TwitterClone/ads/model"
 	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/mux"
 	"go.opentelemetry.io/otel/codes"

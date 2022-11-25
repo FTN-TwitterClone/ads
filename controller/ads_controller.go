@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"ads/controller/json"
-	"ads/service"
+	"github.com/FTN-TwitterClone/ads/controller/json"
+	"github.com/FTN-TwitterClone/ads/service"
 	"github.com/gocql/gocql"
 	"github.com/gorilla/mux"
 	"go.opentelemetry.io/otel/codes"

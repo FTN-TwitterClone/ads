@@ -1,13 +1,13 @@
 package main
 
 import (
-	"ads/controller"
-	"ads/controller/jwt"
-	"ads/repository/cassandra"
-	"ads/service"
-	"ads/tls"
-	"ads/tracing"
 	"context"
+	"github.com/FTN-TwitterClone/ads/controller"
+	"github.com/FTN-TwitterClone/ads/controller/jwt"
+	"github.com/FTN-TwitterClone/ads/repository/cassandra"
+	"github.com/FTN-TwitterClone/ads/service"
+	"github.com/FTN-TwitterClone/ads/tls"
+	"github.com/FTN-TwitterClone/ads/tracing"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"go.opentelemetry.io/otel"

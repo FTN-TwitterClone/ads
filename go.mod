@@ -1,4 +1,4 @@
-module ads
+module github.com/FTN-TwitterClone/ads
 
 go 1.18
 
