@@ -5,5 +5,6 @@ import (
 )
 
 type ReportsRepository interface {
-	UpsertMonthlyReportTweetLiked(ctx context.Context, tweetId string) error
+	UpsertMonthlyReportLikesCount(ctx context.Context, tweetId string, year int64, month int64) error
+	UpsertMonthlyReportAverageProfileViewTime(ctx context.Context, tweetId string, year int64, month int64, averageViewTime int64) error
 }

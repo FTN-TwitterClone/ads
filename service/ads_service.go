@@ -8,7 +8,6 @@ import (
 	"github.com/gocql/gocql"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
-	"time"
 )
 
 type AdsService struct {
@@ -49,44 +48,16 @@ func (s *AdsService) AddProfileVisitedEvent(ctx context.Context, tweetId string,
 	return nil
 }
 
-func (s *AdsService) GenerateReport(ctx context.Context, tweetId gocql.UUID, from time.Time, to time.Time) (*model.Report, *app_errors.AppError) {
-	//serviceCtx, span := s.tracer.Start(ctx, "AdsService.AddProfileVisitedEvent")
-	//defer span.End()
-	//
-	//likesCount, err := s.eventsRepository.GetTweetLikesCount(serviceCtx, tweetId, from, to)
-	//if err != nil {
-	//	span.SetStatus(codes.Error, err.Error())
-	//	return nil, &app_errors.AppError{500, ""}
-	//}
-	//
-	//unlikesCount, err := s.eventsRepository.GetTweetUnlikesCount(serviceCtx, tweetId, from, to)
-	//if err != nil {
-	//	span.SetStatus(codes.Error, err.Error())
-	//	return nil, &app_errors.AppError{500, ""}
-	//}
-	//
-	//viewTime, err := s.eventsRepository.GetAverageTweetViewTimeCount(serviceCtx, tweetId, from, to)
-	//if err != nil {
-	//	span.SetStatus(codes.Error, err.Error())
-	//	return nil, &app_errors.AppError{500, ""}
-	//}
-	//
-	//visitsCount, err := s.eventsRepository.GetProfileVisitsCount(serviceCtx, tweetId, from, to)
-	//if err != nil {
-	//	span.SetStatus(codes.Error, err.Error())
-	//	return nil, &app_errors.AppError{500, ""}
-	//}
-	//
-	//r := model.Report{
-	//	TweetsLiked:          likesCount,
-	//	TweetsUnliked:        unlikesCount,
-	//	AverageTweetViewTime: viewTime,
-	//	ProfileVisits:        visitsCount,
-	//	From:                 from,
-	//	To:                   to,
-	//}
-	//
-	//return &r, nil
+func (s *AdsService) GetMonthlyReport(ctx context.Context, tweetId string, year int64, month int64) (*model.Report, *app_errors.AppError) {
+	_, span := s.tracer.Start(ctx, "AdsService.GetMonthlyReport")
+	defer span.End()
+
+	return nil, nil
+}
+
+func (s *AdsService) GetDailyReport(ctx context.Context, tweetId string, year int64, day int64, month int64) (*model.Report, *app_errors.AppError) {
+	_, span := s.tracer.Start(ctx, "AdsService.GetDailyReport")
+	defer span.End()
 
 	return nil, nil
 }

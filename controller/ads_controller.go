@@ -9,7 +9,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type AdsController struct {
@@ -40,19 +39,19 @@ func (c *AdsController) AddProfileVisitedEvent(w http.ResponseWriter, req *http.
 }
 
 func (c *AdsController) GetMonthlyReport(w http.ResponseWriter, req *http.Request) {
-	ctx, span := c.tracer.Start(req.Context(), "AdsController.GetReport")
+	ctx, span := c.tracer.Start(req.Context(), "AdsController.GetMonthlyReport")
 	defer span.End()
 
 	tweetIdString := mux.Vars(req)["id"]
 
-	fromInt, err := strconv.ParseInt(mux.Vars(req)["from"], 10, 64)
+	year, err := strconv.ParseInt(mux.Vars(req)["year"], 10, 64)
 	if err != nil {
 		span.SetStatus(codes.Error, err.Error())
 		http.Error(w, "", 500)
 		return
 	}
 
-	toInt, err := strconv.ParseInt(mux.Vars(req)["to"], 10, 64)
+	month, err := strconv.ParseInt(mux.Vars(req)["month"], 10, 64)
 	if err != nil {
 		span.SetStatus(codes.Error, err.Error())
 		http.Error(w, "", 500)
@@ -66,10 +65,7 @@ func (c *AdsController) GetMonthlyReport(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	from := time.UnixMilli(fromInt)
-	to := time.UnixMilli(toInt)
-
-	report, appErr := c.adsService.GenerateReport(ctx, tweetId, from, to)
+	report, appErr := c.adsService.GetMonthlyReport(ctx, tweetId.String(), year, month)
 	if appErr != nil {
 		span.SetStatus(codes.Error, appErr.Error())
 		http.Error(w, appErr.Message, appErr.Code)
@@ -80,5 +76,45 @@ func (c *AdsController) GetMonthlyReport(w http.ResponseWriter, req *http.Reques
 }
 
 func (c *AdsController) GetDailyReport(w http.ResponseWriter, req *http.Request) {
+	ctx, span := c.tracer.Start(req.Context(), "AdsController.GetMonthlyReport")
+	defer span.End()
 
+	tweetIdString := mux.Vars(req)["id"]
+
+	year, err := strconv.ParseInt(mux.Vars(req)["year"], 10, 64)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		http.Error(w, "", 500)
+		return
+	}
+
+	month, err := strconv.ParseInt(mux.Vars(req)["month"], 10, 64)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		http.Error(w, "", 500)
+		return
+	}
+
+	day, err := strconv.ParseInt(mux.Vars(req)["day"], 10, 64)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		http.Error(w, "", 500)
+		return
+	}
+
+	tweetId, err := gocql.ParseUUID(tweetIdString)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		http.Error(w, "", 500)
+		return
+	}
+
+	report, appErr := c.adsService.GetDailyReport(ctx, tweetId.String(), year, month, day)
+	if appErr != nil {
+		span.SetStatus(codes.Error, appErr.Error())
+		http.Error(w, appErr.Message, appErr.Code)
+		return
+	}
+
+	json.EncodeJson(w, &report)
 }
