@@ -31,8 +31,8 @@ func NewCassandraAdsRepository(tracer trace.Tracer) (*CassandraAdsRepository, er
 		return nil, err
 	}
 
-	dbport := os.Getenv("DBPORT")
-	db := os.Getenv("DB")
+	dbport := os.Getenv("CASSANDRA_DBPORT")
+	db := os.Getenv("CASSANDRA_DB")
 	host := fmt.Sprintf("%s:%s", db, dbport)
 
 	cluster := gocql.NewCluster(host)
