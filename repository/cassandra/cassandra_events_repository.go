@@ -56,8 +56,8 @@ func NewCassandraEventsRepository(tracer trace.Tracer) (*CassandraEventsReposito
 }
 
 func initKeyspace() error {
-	dbport := os.Getenv("DBPORT")
-	db := os.Getenv("DB")
+	dbport := os.Getenv("CASSANDRA_DBPORT")
+	db := os.Getenv("CASSANDRA_DB")
 	host := fmt.Sprintf("%s:%s", db, dbport)
 
 	cluster := gocql.NewCluster(host)
@@ -84,8 +84,8 @@ func initKeyspace() error {
 }
 
 func migrateDB() error {
-	dbport := os.Getenv("DBPORT")
-	db := os.Getenv("DB")
+	dbport := os.Getenv("CASSANDRA_DBPORT")
+	db := os.Getenv("CASSANDRA_DB")
 	connString := fmt.Sprintf("cassandra://%s:%s/ads_database?x-multi-statement=true", db, dbport)
 
 	m, err := migrate.New("file://migrations", connString)
