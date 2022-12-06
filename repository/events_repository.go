@@ -7,13 +7,10 @@ import (
 	"time"
 )
 
-type AdsRepository interface {
+type EventsRepository interface {
 	SaveTweetLikedEvent(ctx context.Context, tweetLikedEvent *model.TweetLikedEvent) error
 	SaveTweetUnlikedEvent(ctx context.Context, tweetUnlikedEvent *model.TweetUnlikedEvent) error
 	SaveTweetViewedEvent(ctx context.Context, tweetViewedEvent *model.TweetViewedEvent) error
 	SaveProfileVisitedEvent(ctx context.Context, profileVisitedEvent *model.ProfileVisitedEvent) error
-	GetTweetLikesCount(ctx context.Context, tweetId gocql.UUID, from time.Time, to time.Time) (int, error)
-	GetTweetUnlikesCount(ctx context.Context, tweetId gocql.UUID, from time.Time, to time.Time) (int, error)
-	GetAverageTweetViewTimeCount(ctx context.Context, tweetId gocql.UUID, from time.Time, to time.Time) (int, error)
-	GetProfileVisitsCount(ctx context.Context, tweetId gocql.UUID, from time.Time, to time.Time) (int, error)
+	GetAverageTweetViewTime(ctx context.Context, tweetId gocql.UUID, from time.Time, to time.Time) (int, error)
 }

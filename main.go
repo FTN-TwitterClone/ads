@@ -5,6 +5,7 @@ import (
 	"github.com/FTN-TwitterClone/ads/controller"
 	"github.com/FTN-TwitterClone/ads/controller/jwt"
 	"github.com/FTN-TwitterClone/ads/repository/cassandra"
+	"github.com/FTN-TwitterClone/ads/repository/mongo"
 	"github.com/FTN-TwitterClone/ads/service"
 	"github.com/FTN-TwitterClone/ads/tls"
 	"github.com/FTN-TwitterClone/ads/tracing"
@@ -35,15 +36,20 @@ func main() {
 	defer func() { _ = tp.Shutdown(ctx) }()
 	otel.SetTracerProvider(tp)
 	// Finally, set the tracer that can be used for this package.
-	tracer := tp.Tracer("tweet")
+	tracer := tp.Tracer("ads")
 	otel.SetTextMapPropagator(propagation.TraceContext{})
 
-	adsRepository, err := cassandra.NewCassandraAdsRepository(tracer)
+	eventsRepository, err := cassandra.NewCassandraEventsRepository(tracer)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	adsService := service.NewAdsService(adsRepository, tracer)
+	reportsRepository, err := mongo.NewMongoReportsRepository(tracer)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	adsService := service.NewAdsService(eventsRepository, reportsRepository, tracer)
 
 	adsController := controller.NewAdsController(adsService, tracer)
 
@@ -55,7 +61,8 @@ func main() {
 	)
 
 	router.HandleFunc("/users/{tweetId}/{username}/visit/", adsController.AddProfileVisitedEvent).Methods("POST")
-	router.HandleFunc("/ads/{id}/reports/{from}/{to}/", adsController.GetReport).Methods("GET")
+	router.HandleFunc("/ads/{id}/reports/{year}/{month}/", adsController.GetMonthlyReport).Methods("GET")
+	router.HandleFunc("/ads/{id}/reports/{year}/{month}/{day}/", adsController.GetDailyReport).Methods("GET")
 
 	allowedHeaders := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"})

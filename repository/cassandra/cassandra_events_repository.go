@@ -15,12 +15,12 @@ import (
 	"time"
 )
 
-type CassandraAdsRepository struct {
+type CassandraEventsRepository struct {
 	tracer  trace.Tracer
 	session *gocql.Session
 }
 
-func NewCassandraAdsRepository(tracer trace.Tracer) (*CassandraAdsRepository, error) {
+func NewCassandraEventsRepository(tracer trace.Tracer) (*CassandraEventsRepository, error) {
 	err := initKeyspace()
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func NewCassandraAdsRepository(tracer trace.Tracer) (*CassandraAdsRepository, er
 
 	log.Printf("Connected OK!")
 
-	return &CassandraAdsRepository{
+	return &CassandraEventsRepository{
 		tracer:  tracer,
 		session: session,
 	}, nil
@@ -102,8 +102,8 @@ func migrateDB() error {
 	return nil
 }
 
-func (r *CassandraAdsRepository) SaveTweetLikedEvent(ctx context.Context, tweetLikedEvent *model.TweetLikedEvent) error {
-	_, span := r.tracer.Start(ctx, "CassandraAdsRepository.SaveTweetLikedEvent")
+func (r *CassandraEventsRepository) SaveTweetLikedEvent(ctx context.Context, tweetLikedEvent *model.TweetLikedEvent) error {
+	_, span := r.tracer.Start(ctx, "CassandraEventsRepository.SaveTweetLikedEvent")
 	defer span.End()
 
 	err := r.session.Query("INSERT INTO tweet_liked_events(tweet_id, id, username) VALUES (?, ?, ?)").
@@ -118,8 +118,8 @@ func (r *CassandraAdsRepository) SaveTweetLikedEvent(ctx context.Context, tweetL
 	return nil
 }
 
-func (r *CassandraAdsRepository) SaveTweetUnlikedEvent(ctx context.Context, tweetUnlikedEvent *model.TweetUnlikedEvent) error {
-	_, span := r.tracer.Start(ctx, "CassandraAdsRepository.SaveTweetLikedEvent")
+func (r *CassandraEventsRepository) SaveTweetUnlikedEvent(ctx context.Context, tweetUnlikedEvent *model.TweetUnlikedEvent) error {
+	_, span := r.tracer.Start(ctx, "CassandraEventsRepository.SaveTweetLikedEvent")
 	defer span.End()
 
 	err := r.session.Query("INSERT INTO tweet_unliked_events(tweet_id, id, username) VALUES (?, ?, ?)").
@@ -134,8 +134,8 @@ func (r *CassandraAdsRepository) SaveTweetUnlikedEvent(ctx context.Context, twee
 	return nil
 }
 
-func (r *CassandraAdsRepository) SaveTweetViewedEvent(ctx context.Context, tweetViewedEvent *model.TweetViewedEvent) error {
-	_, span := r.tracer.Start(ctx, "CassandraAdsRepository.SaveTweetLikedEvent")
+func (r *CassandraEventsRepository) SaveTweetViewedEvent(ctx context.Context, tweetViewedEvent *model.TweetViewedEvent) error {
+	_, span := r.tracer.Start(ctx, "CassandraEventsRepository.SaveTweetLikedEvent")
 	defer span.End()
 
 	err := r.session.Query("INSERT INTO tweet_viewed_events(tweet_id, id, username, view_time) VALUES (?, ?, ?, ?)").
@@ -150,8 +150,8 @@ func (r *CassandraAdsRepository) SaveTweetViewedEvent(ctx context.Context, tweet
 	return nil
 }
 
-func (r *CassandraAdsRepository) SaveProfileVisitedEvent(ctx context.Context, profileVisitedEvent *model.ProfileVisitedEvent) error {
-	_, span := r.tracer.Start(ctx, "CassandraAdsRepository.SaveProfileVisitedEvent")
+func (r *CassandraEventsRepository) SaveProfileVisitedEvent(ctx context.Context, profileVisitedEvent *model.ProfileVisitedEvent) error {
+	_, span := r.tracer.Start(ctx, "CassandraEventsRepository.SaveProfileVisitedEvent")
 	defer span.End()
 
 	err := r.session.Query("INSERT INTO profile_visited_events(tweet_id, id, username) VALUES (?, ?, ?)").
@@ -166,67 +166,13 @@ func (r *CassandraAdsRepository) SaveProfileVisitedEvent(ctx context.Context, pr
 	return nil
 }
 
-func (r *CassandraAdsRepository) GetTweetLikesCount(ctx context.Context, tweetId gocql.UUID, from time.Time, to time.Time) (int, error) {
-	_, span := r.tracer.Start(ctx, "CassandraAdsRepository.GetProfileVisitsCount")
-	defer span.End()
-
-	var visitsCount int
-
-	err := r.session.Query("SELECT COUNT(*) FROM tweet_liked_events WHERE tweet_id = ? AND id > maxTimeuuid(?) AND id < minTimeuuid(?)").
-		Bind(tweetId, from, to).
-		Scan(&visitsCount)
-
-	if err != nil {
-		span.SetStatus(codes.Error, err.Error())
-		return 0, err
-	}
-
-	return visitsCount, err
-}
-
-func (r *CassandraAdsRepository) GetTweetUnlikesCount(ctx context.Context, tweetId gocql.UUID, from time.Time, to time.Time) (int, error) {
-	_, span := r.tracer.Start(ctx, "CassandraAdsRepository.GetProfileVisitsCount")
-	defer span.End()
-
-	var visitsCount int
-
-	err := r.session.Query("SELECT COUNT(*) FROM tweet_unliked_events WHERE tweet_id = ? AND id > maxTimeuuid(?) AND id < minTimeuuid(?)").
-		Bind(tweetId, from, to).
-		Scan(&visitsCount)
-
-	if err != nil {
-		span.SetStatus(codes.Error, err.Error())
-		return 0, err
-	}
-
-	return visitsCount, err
-}
-
-func (r *CassandraAdsRepository) GetAverageTweetViewTimeCount(ctx context.Context, tweetId gocql.UUID, from time.Time, to time.Time) (int, error) {
-	_, span := r.tracer.Start(ctx, "CassandraAdsRepository.GetProfileVisitsCount")
+func (r *CassandraEventsRepository) GetAverageTweetViewTime(ctx context.Context, tweetId gocql.UUID, from time.Time, to time.Time) (int, error) {
+	_, span := r.tracer.Start(ctx, "CassandraAdsRepository.GetAverageTweetViewTime")
 	defer span.End()
 
 	var visitsCount int
 
 	err := r.session.Query("SELECT AVG(view_time) FROM tweet_viewed_events WHERE tweet_id = ? AND id > maxTimeuuid(?) AND id < minTimeuuid(?)").
-		Bind(tweetId, from, to).
-		Scan(&visitsCount)
-
-	if err != nil {
-		span.SetStatus(codes.Error, err.Error())
-		return 0, err
-	}
-
-	return visitsCount, err
-}
-
-func (r *CassandraAdsRepository) GetProfileVisitsCount(ctx context.Context, tweetId gocql.UUID, from time.Time, to time.Time) (int, error) {
-	_, span := r.tracer.Start(ctx, "CassandraAdsRepository.GetProfileVisitsCount")
-	defer span.End()
-
-	var visitsCount int
-
-	err := r.session.Query("SELECT COUNT(*) FROM profile_visited_events WHERE tweet_id = ? AND id > maxTimeuuid(?) AND id < minTimeuuid(?)").
 		Bind(tweetId, from, to).
 		Scan(&visitsCount)
 

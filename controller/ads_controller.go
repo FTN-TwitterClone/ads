@@ -39,7 +39,7 @@ func (c *AdsController) AddProfileVisitedEvent(w http.ResponseWriter, req *http.
 	}
 }
 
-func (c *AdsController) GetReport(w http.ResponseWriter, req *http.Request) {
+func (c *AdsController) GetMonthlyReport(w http.ResponseWriter, req *http.Request) {
 	ctx, span := c.tracer.Start(req.Context(), "AdsController.GetReport")
 	defer span.End()
 
@@ -77,4 +77,8 @@ func (c *AdsController) GetReport(w http.ResponseWriter, req *http.Request) {
 	}
 
 	json.EncodeJson(w, &report)
+}
+
+func (c *AdsController) GetDailyReport(w http.ResponseWriter, req *http.Request) {
+
 }
