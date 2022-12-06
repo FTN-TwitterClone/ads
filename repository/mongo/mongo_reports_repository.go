@@ -16,8 +16,8 @@ type MongoReportsRepository struct {
 
 func NewMongoReportsRepository(tracer trace.Tracer) (*MongoReportsRepository, error) {
 
-	db := os.Getenv("DB")
-	dbport := os.Getenv("DBPORT")
+	db := os.Getenv("MONGO_DB")
+	dbport := os.Getenv("MONGO_DBPORT")
 
 	//mongo logic
 	host := fmt.Sprintf("%s:%s", db, dbport)
@@ -25,7 +25,7 @@ func NewMongoReportsRepository(tracer trace.Tracer) (*MongoReportsRepository, er
 	if err != nil {
 		panic(err)
 	}
-	client.Database("reportsDB").Collection("users")
+	client.Database("reportsDB").Collection("reports")
 
 	car := MongoReportsRepository{
 		tracer,
