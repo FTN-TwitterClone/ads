@@ -2,12 +2,13 @@ package service
 
 import (
 	"context"
+	"github.com/FTN-TwitterClone/ads/model"
 	"github.com/FTN-TwitterClone/ads/repository"
 	"github.com/FTN-TwitterClone/grpc-stubs/proto/ads"
+	"github.com/gocql/gocql"
 	"github.com/golang/protobuf/ptypes/empty"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type gRPCAdsService struct {
@@ -25,14 +26,39 @@ func NewgRPCAdsService(tracer trace.Tracer, eventsRepository repository.EventsRe
 	}
 }
 
-func (s *gRPCAdsService) SaveAdInfo(context.Context, *ads.AdInfo) (*empty.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SaveAdInfo not implemented")
+func (s *gRPCAdsService) SaveAdInfo(ctx context.Context, adInfo *ads.AdInfo) (*empty.Empty, error) {
+	serviceCtx, span := s.tracer.Start(ctx, "gRPCAdsService.SaveAdInfo")
+	defer span.End()
+
+	tweetId, err := gocql.ParseUUID(adInfo.TweetId)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
+	}
+
+	//TODO: fix string type for age
+	a := model.AdInfo{
+		TweetId:  tweetId,
+		PostedBy: adInfo.PostedBy,
+		Town:     adInfo.Town,
+		MinAge:   0,
+		MaxAge:   0,
+		Gender:   adInfo.Gender,
+	}
+
+	err = s.eventsRepository.SaveAdInfo(serviceCtx, &a)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
+	}
+
+	return new(empty.Empty), nil
 }
 
-func (s *gRPCAdsService) SaveLikeEvent(context.Context, *ads.LikeEvent) (*empty.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SaveLikeEvent not implemented")
+func (s *gRPCAdsService) SaveLikeEvent(ctx context.Context, likeEvent *ads.LikeEvent) (*empty.Empty, error) {
+	return new(empty.Empty), nil
 }
 
-func (s *gRPCAdsService) SaveUnlikeEvent(context.Context, *ads.UnlikeEvent) (*empty.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SaveUnlikeEvent not implemented")
+func (s *gRPCAdsService) SaveUnlikeEvent(ctx context.Context, unlikeEvent *ads.UnlikeEvent) (*empty.Empty, error) {
+	return new(empty.Empty), nil
 }

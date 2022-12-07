@@ -12,6 +12,15 @@ type AuthUser struct {
 	Exp      time.Time
 }
 
+type AdInfo struct {
+	TweetId  gocql.UUID
+	PostedBy string
+	Town     string
+	MinAge   int
+	MaxAge   int
+	Gender   string
+}
+
 type TweetLikedEvent struct {
 	Username string
 	TweetId  gocql.UUID

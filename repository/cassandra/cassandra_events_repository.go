@@ -102,6 +102,22 @@ func migrateDB() error {
 	return nil
 }
 
+func (r *CassandraEventsRepository) SaveAdInfo(ctx context.Context, adInfo *model.AdInfo) error {
+	_, span := r.tracer.Start(ctx, "CassandraEventsRepository.SaveTweetLikedEvent")
+	defer span.End()
+
+	err := r.session.Query("INSERT INTO ad_info(tweet_id, posted_by, town, min_age, max_age, gender) VALUES (?, ?, ?, ?, ?, ?)").
+		Bind(adInfo.TweetId, adInfo.PostedBy, adInfo.Town, adInfo.MinAge, adInfo.MaxAge, adInfo.Gender).
+		Exec()
+
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return err
+	}
+
+	return nil
+}
+
 func (r *CassandraEventsRepository) SaveTweetLikedEvent(ctx context.Context, tweetLikedEvent *model.TweetLikedEvent) error {
 	_, span := r.tracer.Start(ctx, "CassandraEventsRepository.SaveTweetLikedEvent")
 	defer span.End()
