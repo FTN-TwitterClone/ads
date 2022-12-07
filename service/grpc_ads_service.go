@@ -56,9 +56,53 @@ func (s *gRPCAdsService) SaveAdInfo(ctx context.Context, adInfo *ads.AdInfo) (*e
 }
 
 func (s *gRPCAdsService) SaveLikeEvent(ctx context.Context, likeEvent *ads.LikeEvent) (*empty.Empty, error) {
+	serviceCtx, span := s.tracer.Start(ctx, "gRPCAdsService.SaveLikeEvent")
+	defer span.End()
+
+	tweetId, err := gocql.ParseUUID(likeEvent.TweetId)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
+	}
+
+	e := model.TweetLikedEvent{
+		Username: likeEvent.Username,
+		TweetId:  tweetId,
+	}
+
+	err = s.eventsRepository.SaveTweetLikedEvent(serviceCtx, &e)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
+	}
+
+	//TODO: update reports
+
 	return new(empty.Empty), nil
 }
 
 func (s *gRPCAdsService) SaveUnlikeEvent(ctx context.Context, unlikeEvent *ads.UnlikeEvent) (*empty.Empty, error) {
+	serviceCtx, span := s.tracer.Start(ctx, "gRPCAdsService.SaveLikeEvent")
+	defer span.End()
+
+	tweetId, err := gocql.ParseUUID(unlikeEvent.TweetId)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
+	}
+
+	e := model.TweetUnlikedEvent{
+		Username: unlikeEvent.Username,
+		TweetId:  tweetId,
+	}
+
+	err = s.eventsRepository.SaveTweetUnlikedEvent(serviceCtx, &e)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
+	}
+
+	//TODO: update reports
+
 	return new(empty.Empty), nil
 }
