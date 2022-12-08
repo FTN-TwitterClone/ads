@@ -67,6 +67,7 @@ func main() {
 	)
 
 	router.HandleFunc("/users/{tweetId}/{username}/visit/", adsController.AddProfileVisitedEvent).Methods("POST")
+	router.HandleFunc("/users/{tweetId}/view/", adsController.AddTweetViewedEvent).Methods("POST")
 	router.HandleFunc("/ads/{id}/reports/{year}/{month}/", adsController.GetMonthlyReport).Methods("GET")
 	router.HandleFunc("/ads/{id}/reports/{year}/{month}/{day}/", adsController.GetDailyReport).Methods("GET")
 

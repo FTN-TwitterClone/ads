@@ -16,8 +16,8 @@ type AdInfo struct {
 	TweetId  gocql.UUID
 	PostedBy string
 	Town     string
-	MinAge   int
-	MaxAge   int
+	MinAge   int32
+	MaxAge   int32
 	Gender   string
 }
 
@@ -40,6 +40,10 @@ type TweetViewedEvent struct {
 type ProfileVisitedEvent struct {
 	Username string
 	TweetId  gocql.UUID
+}
+
+type TweetViewTime struct {
+	ViewTime int32 `json:"viewTime"`
 }
 
 type Report struct {

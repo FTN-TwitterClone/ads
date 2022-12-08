@@ -36,13 +36,12 @@ func (s *gRPCAdsService) SaveAdInfo(ctx context.Context, adInfo *ads.AdInfo) (*e
 		return nil, err
 	}
 
-	//TODO: fix string type for age
 	a := model.AdInfo{
 		TweetId:  tweetId,
 		PostedBy: adInfo.PostedBy,
 		Town:     adInfo.Town,
-		MinAge:   0,
-		MaxAge:   0,
+		MinAge:   adInfo.MinAge,
+		MaxAge:   adInfo.MaxAge,
 		Gender:   adInfo.Gender,
 	}
 

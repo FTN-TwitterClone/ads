@@ -3,7 +3,7 @@ module github.com/FTN-TwitterClone/ads
 go 1.18
 
 require (
-	github.com/FTN-TwitterClone/grpc-stubs v1.2.0
+	github.com/FTN-TwitterClone/grpc-stubs v1.2.1
 	github.com/gocql/gocql v1.2.1
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-migrate/migrate/v4 v4.15.2

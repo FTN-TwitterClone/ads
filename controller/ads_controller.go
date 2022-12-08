@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/FTN-TwitterClone/ads/controller/json"
+	"github.com/FTN-TwitterClone/ads/model"
 	"github.com/FTN-TwitterClone/ads/service"
 	"github.com/gocql/gocql"
 	"github.com/gorilla/mux"
@@ -31,6 +32,27 @@ func (c *AdsController) AddProfileVisitedEvent(w http.ResponseWriter, req *http.
 	tweetId := mux.Vars(req)["tweetId"]
 
 	appErr := c.adsService.AddProfileVisitedEvent(ctx, tweetId, username)
+	if appErr != nil {
+		span.SetStatus(codes.Error, appErr.Error())
+		http.Error(w, appErr.Message, appErr.Code)
+		return
+	}
+}
+
+func (c *AdsController) AddTweetViewedEvent(w http.ResponseWriter, req *http.Request) {
+	ctx, span := c.tracer.Start(req.Context(), "AdsController.AddProfileVisitedEvent")
+	defer span.End()
+
+	tweetId := mux.Vars(req)["tweetId"]
+
+	viewTime, err := json.DecodeJson[model.TweetViewTime](req.Body)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	appErr := c.adsService.AddTweetViewedEvent(ctx, tweetId, viewTime)
 	if appErr != nil {
 		span.SetStatus(codes.Error, appErr.Error())
 		http.Error(w, appErr.Message, appErr.Code)

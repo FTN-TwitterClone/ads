@@ -45,6 +45,37 @@ func (s *AdsService) AddProfileVisitedEvent(ctx context.Context, tweetId string,
 		return &app_errors.AppError{500, ""}
 	}
 
+	//TODO: update reports
+
+	return nil
+}
+
+func (s *AdsService) AddTweetViewedEvent(ctx context.Context, tweetId string, viewTime model.TweetViewTime) *app_errors.AppError {
+	serviceCtx, span := s.tracer.Start(ctx, "AdsService.AddTweetViewedEvent")
+	defer span.End()
+
+	uuid, err := gocql.ParseUUID(tweetId)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return &app_errors.AppError{422, "Invalid UUID"}
+	}
+
+	authUser := ctx.Value("authUser").(model.AuthUser)
+
+	e := model.TweetViewedEvent{
+		Username: authUser.Username,
+		TweetId:  uuid,
+		ViewTime: viewTime.ViewTime,
+	}
+
+	err = s.eventsRepository.SaveTweetViewedEvent(serviceCtx, &e)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return &app_errors.AppError{500, ""}
+	}
+
+	//TODO: update reports
+
 	return nil
 }
 
