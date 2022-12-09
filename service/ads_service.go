@@ -48,11 +48,15 @@ func (s *AdsService) AddProfileVisitedEvent(ctx context.Context, tweetId string)
 		return &app_errors.AppError{500, ""}
 	}
 
-	//TODO: update reports
-
 	date := time.Now()
 
 	err = s.reportsRepository.UpsertMonthlyReportProfileVisitsCount(serviceCtx, tweetId, int64(date.Year()), int64(date.Month()))
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return &app_errors.AppError{500, ""}
+	}
+
+	err = s.reportsRepository.UpsertDailyReportProfileVisitsCount(serviceCtx, tweetId, int64(date.Year()), int64(date.Month()), int64(date.Day()))
 	if err != nil {
 		span.SetStatus(codes.Error, err.Error())
 		return &app_errors.AppError{500, ""}

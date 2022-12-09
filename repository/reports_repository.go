@@ -12,4 +12,8 @@ type ReportsRepository interface {
 	UpsertMonthlyReportUnlikesCount(ctx context.Context, tweetId string, year int64, month int64) error
 	UpsertMonthlyReportProfileVisitsCount(ctx context.Context, tweetId string, year int64, month int64) error
 	UpsertMonthlyReportAverageProfileViewTime(ctx context.Context, tweetId string, year int64, month int64, averageViewTime int64) error
+	UpsertDailyReportLikesCount(ctx context.Context, tweetId string, year int64, month int64, day int64) error
+	UpsertDailyReportUnlikesCount(ctx context.Context, tweetId string, year int64, month int64, day int64) error
+	UpsertDailyReportProfileVisitsCount(ctx context.Context, tweetId string, year int64, month int64, day int64) error
+	UpsertDailyReportAverageProfileViewTime(ctx context.Context, tweetId string, year int64, month int64, day int64, averageViewTime int64) error
 }

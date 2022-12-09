@@ -9,6 +9,7 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
+	"time"
 )
 
 type gRPCAdsService struct {
@@ -75,7 +76,19 @@ func (s *gRPCAdsService) SaveLikeEvent(ctx context.Context, likeEvent *ads.LikeE
 		return nil, err
 	}
 
-	//TODO: update reports
+	date := time.Now()
+
+	err = s.reportsRepository.UpsertMonthlyReportLikesCount(serviceCtx, likeEvent.TweetId, int64(date.Year()), int64(date.Month()))
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
+	}
+
+	err = s.reportsRepository.UpsertDailyReportLikesCount(serviceCtx, likeEvent.TweetId, int64(date.Year()), int64(date.Month()), int64(date.Day()))
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
+	}
 
 	return new(empty.Empty), nil
 }
@@ -101,7 +114,19 @@ func (s *gRPCAdsService) SaveUnlikeEvent(ctx context.Context, unlikeEvent *ads.U
 		return nil, err
 	}
 
-	//TODO: update reports
+	date := time.Now()
+
+	err = s.reportsRepository.UpsertMonthlyReportUnlikesCount(serviceCtx, unlikeEvent.TweetId, int64(date.Year()), int64(date.Month()))
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
+	}
+
+	err = s.reportsRepository.UpsertDailyReportUnlikesCount(serviceCtx, unlikeEvent.TweetId, int64(date.Year()), int64(date.Month()), int64(date.Day()))
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
+	}
 
 	return new(empty.Empty), nil
 }

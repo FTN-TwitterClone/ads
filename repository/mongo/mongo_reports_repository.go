@@ -12,6 +12,11 @@ import (
 	"os"
 )
 
+const (
+	MONTHLY = "monthly"
+	DAILY   = "daily"
+)
+
 type MongoReportsRepository struct {
 	tracer trace.Tracer
 	cli    *mongo.Client
@@ -44,7 +49,7 @@ func (r *MongoReportsRepository) GetMonthlyReport(ctx context.Context, tweetId s
 
 	usersCollection := r.cli.Database("reportsDB").Collection("reports")
 
-	filter := bson.M{"tweetId": tweetId, "type": "monthly", "year": year, "month": month}
+	filter := bson.M{"tweetId": tweetId, "type": MONTHLY, "year": year, "month": month}
 
 	var report model.Report
 
@@ -68,7 +73,7 @@ func (r *MongoReportsRepository) GetDailyReport(ctx context.Context, tweetId str
 
 	usersCollection := r.cli.Database("reportsDB").Collection("reports")
 
-	filter := bson.M{"tweetId": tweetId, "type": "daily", "year": year, "month": month, "day": day}
+	filter := bson.M{"tweetId": tweetId, "type": DAILY, "year": year, "month": month, "day": day}
 
 	var report model.Report
 
@@ -86,8 +91,8 @@ func (r *MongoReportsRepository) UpsertMonthlyReportLikesCount(ctx context.Conte
 
 	usersCollection := r.cli.Database("reportsDB").Collection("reports")
 
-	filter := bson.M{"tweetId": tweetId, "type": "monthly", "year": year, "month": month}
-	update := bson.D{{"inc", bson.D{{"likesCount", 1}}}}
+	filter := bson.M{"tweetId": tweetId, "type": MONTHLY, "year": year, "month": month}
+	update := bson.D{{"$inc", bson.D{{"likesCount", 1}}}}
 	setUpsert := options.Update().SetUpsert(true)
 
 	_, err := usersCollection.UpdateOne(ctx, filter, update, setUpsert)
@@ -106,8 +111,8 @@ func (r *MongoReportsRepository) UpsertMonthlyReportUnlikesCount(ctx context.Con
 
 	usersCollection := r.cli.Database("reportsDB").Collection("reports")
 
-	filter := bson.M{"tweetId": tweetId, "type": "monthly", "year": year, "month": month}
-	update := bson.D{{"inc", bson.D{{"unlikesCount", 1}}}}
+	filter := bson.M{"tweetId": tweetId, "type": MONTHLY, "year": year, "month": month}
+	update := bson.D{{"$inc", bson.D{{"unlikesCount", 1}}}}
 	setUpsert := options.Update().SetUpsert(true)
 
 	_, err := usersCollection.UpdateOne(ctx, filter, update, setUpsert)
@@ -126,7 +131,7 @@ func (r *MongoReportsRepository) UpsertMonthlyReportProfileVisitsCount(ctx conte
 
 	usersCollection := r.cli.Database("reportsDB").Collection("reports")
 
-	filter := bson.M{"tweetId": tweetId, "type": "monthly", "year": year, "month": month}
+	filter := bson.M{"tweetId": tweetId, "type": MONTHLY, "year": year, "month": month}
 	update := bson.D{{"$inc", bson.D{{"profileVisits", 1}}}}
 	setUpsert := options.Update().SetUpsert(true)
 
@@ -146,8 +151,88 @@ func (r *MongoReportsRepository) UpsertMonthlyReportAverageProfileViewTime(ctx c
 
 	usersCollection := r.cli.Database("reportsDB").Collection("reports")
 
-	filter := bson.M{"tweetId": tweetId, "type": "monthly", "year": year, "month": month}
-	update := bson.D{{"set", bson.D{{"averageViewTime", averageViewTime}}}}
+	filter := bson.M{"tweetId": tweetId, "type": MONTHLY, "year": year, "month": month}
+	update := bson.D{{"$set", bson.D{{"averageViewTime", averageViewTime}}}}
+	setUpsert := options.Update().SetUpsert(true)
+
+	_, err := usersCollection.UpdateOne(ctx, filter, update, setUpsert)
+
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (r *MongoReportsRepository) UpsertDailyReportLikesCount(ctx context.Context, tweetId string, year int64, month int64, day int64) error {
+	_, span := r.tracer.Start(ctx, "MongoReportsRepository.UpsertMonthlyReportLikesCount")
+	defer span.End()
+
+	usersCollection := r.cli.Database("reportsDB").Collection("reports")
+
+	filter := bson.M{"tweetId": tweetId, "type": DAILY, "year": year, "month": month, "day": day}
+	update := bson.D{{"$inc", bson.D{{"likesCount", 1}}}}
+	setUpsert := options.Update().SetUpsert(true)
+
+	_, err := usersCollection.UpdateOne(ctx, filter, update, setUpsert)
+
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (r *MongoReportsRepository) UpsertDailyReportUnlikesCount(ctx context.Context, tweetId string, year int64, month int64, day int64) error {
+	_, span := r.tracer.Start(ctx, "MongoReportsRepository.UpsertMonthlyReportUnlikesCount")
+	defer span.End()
+
+	usersCollection := r.cli.Database("reportsDB").Collection("reports")
+
+	filter := bson.M{"tweetId": tweetId, "type": DAILY, "year": year, "month": month, "day": day}
+	update := bson.D{{"$inc", bson.D{{"unlikesCount", 1}}}}
+	setUpsert := options.Update().SetUpsert(true)
+
+	_, err := usersCollection.UpdateOne(ctx, filter, update, setUpsert)
+
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (r *MongoReportsRepository) UpsertDailyReportProfileVisitsCount(ctx context.Context, tweetId string, year int64, month int64, day int64) error {
+	_, span := r.tracer.Start(ctx, "MongoReportsRepository.UpsertMonthlyReportProfileVisitsCount")
+	defer span.End()
+
+	usersCollection := r.cli.Database("reportsDB").Collection("reports")
+
+	filter := bson.M{"tweetId": tweetId, "type": DAILY, "year": year, "month": month, "day": day}
+	update := bson.D{{"$inc", bson.D{{"profileVisits", 1}}}}
+	setUpsert := options.Update().SetUpsert(true)
+
+	_, err := usersCollection.UpdateOne(ctx, filter, update, setUpsert)
+
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (r *MongoReportsRepository) UpsertDailyReportAverageProfileViewTime(ctx context.Context, tweetId string, year int64, month int64, day int64, averageViewTime int64) error {
+	_, span := r.tracer.Start(ctx, "MongoReportsRepository.UpsertMonthlyReportAverageProfileViewTime")
+	defer span.End()
+
+	usersCollection := r.cli.Database("reportsDB").Collection("reports")
+
+	filter := bson.M{"tweetId": tweetId, "type": DAILY, "year": year, "month": month, "day": day}
+	update := bson.D{{"$set", bson.D{{"averageViewTime", averageViewTime}}}}
 	setUpsert := options.Update().SetUpsert(true)
 
 	_, err := usersCollection.UpdateOne(ctx, filter, update, setUpsert)
