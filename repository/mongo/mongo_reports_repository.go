@@ -172,7 +172,7 @@ func (r *MongoReportsRepository) UpsertMonthlyReportAverageProfileViewTime(ctx c
 }
 
 func (r *MongoReportsRepository) UpsertDailyReportLikesCount(ctx context.Context, tweetId string, year int64, month int64, day int64) error {
-	_, span := r.tracer.Start(ctx, "MongoReportsRepository.UpsertMonthlyReportLikesCount")
+	_, span := r.tracer.Start(ctx, "MongoReportsRepository.UpsertDailyReportLikesCount")
 	defer span.End()
 
 	usersCollection := r.cli.Database("reportsDB").Collection("reports")
@@ -192,7 +192,7 @@ func (r *MongoReportsRepository) UpsertDailyReportLikesCount(ctx context.Context
 }
 
 func (r *MongoReportsRepository) UpsertDailyReportUnlikesCount(ctx context.Context, tweetId string, year int64, month int64, day int64) error {
-	_, span := r.tracer.Start(ctx, "MongoReportsRepository.UpsertMonthlyReportUnlikesCount")
+	_, span := r.tracer.Start(ctx, "MongoReportsRepository.UpsertDailyReportUnlikesCount")
 	defer span.End()
 
 	usersCollection := r.cli.Database("reportsDB").Collection("reports")
@@ -212,7 +212,7 @@ func (r *MongoReportsRepository) UpsertDailyReportUnlikesCount(ctx context.Conte
 }
 
 func (r *MongoReportsRepository) UpsertDailyReportProfileVisitsCount(ctx context.Context, tweetId string, year int64, month int64, day int64) error {
-	_, span := r.tracer.Start(ctx, "MongoReportsRepository.UpsertMonthlyReportProfileVisitsCount")
+	_, span := r.tracer.Start(ctx, "MongoReportsRepository.UpsertDailyReportProfileVisitsCount")
 	defer span.End()
 
 	usersCollection := r.cli.Database("reportsDB").Collection("reports")
@@ -232,7 +232,7 @@ func (r *MongoReportsRepository) UpsertDailyReportProfileVisitsCount(ctx context
 }
 
 func (r *MongoReportsRepository) UpsertDailyReportAverageProfileViewTime(ctx context.Context, tweetId string, year int64, month int64, day int64, averageViewTime int64) error {
-	_, span := r.tracer.Start(ctx, "MongoReportsRepository.UpsertMonthlyReportAverageProfileViewTime")
+	_, span := r.tracer.Start(ctx, "MongoReportsRepository.UpsertDailyReportAverageProfileViewTime")
 	defer span.End()
 
 	usersCollection := r.cli.Database("reportsDB").Collection("reports")

@@ -55,8 +55,8 @@ type Report struct {
 	Year            int64  `json:"year" bson:"year"`
 	Month           int64  `json:"month" bson:"month"`
 	Day             int64  `json:"day" bson:"day"`
-	LikesCount      int    `json:"tweetsLiked" bson:"tweetsLiked"`
-	UnlikesCount    int    `json:"tweetsUnliked" bson:"tweetsUnliked"`
+	LikesCount      int    `json:"likesCount" bson:"likesCount"`
+	UnlikesCount    int    `json:"unlikesCount" bson:"unlikesCount"`
 	ProfileVisits   int    `json:"profileVisits" bson:"profileVisits"`
 	AverageViewTime int    `json:"averageViewTime" bson:"averageViewTime"`
 }
