@@ -47,13 +47,12 @@ type TweetViewTime struct {
 }
 
 type Report struct {
-	Id                   gocql.UUID `json:"id"`
-	TweetId              gocql.UUID `json:"tweetId"`
-	From                 time.Time  `json:"from"`
-	To                   time.Time  `json:"to"`
-	TimeGenerated        time.Time  `json:"timeGenerated"`
-	TweetsLiked          int        `json:"tweetsLiked"`
-	TweetsUnliked        int        `json:"tweetsUnliked"`
-	AverageTweetViewTime int        `json:"averageTweetViewTime"`
-	ProfileVisits        int        `json:"profileVisits"`
+	TweetId         string `json:"tweetId" bson:"tweetId"`
+	Year            int64  `json:"year" bson:"year"`
+	Month           int64  `json:"month" bson:"month"`
+	Day             int64  `json:"day" bson:"day"`
+	LikesCount      int    `json:"tweetsLiked" bson:"tweetsLiked"`
+	UnlikesCount    int    `json:"tweetsUnliked" bson:"tweetsUnliked"`
+	ProfileVisits   int    `json:"profileVisits" bson:"profileVisits"`
+	AverageViewTime int    `json:"averageViewTime" bson:"averageViewTime"`
 }

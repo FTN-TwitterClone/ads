@@ -8,6 +8,7 @@ import (
 	"github.com/gocql/gocql"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
+	"time"
 )
 
 type AdsService struct {
@@ -24,18 +25,20 @@ func NewAdsService(adsRepository repository.EventsRepository, reportsRepository 
 	}
 }
 
-func (s *AdsService) AddProfileVisitedEvent(ctx context.Context, tweetId string, username string) *app_errors.AppError {
+func (s *AdsService) AddProfileVisitedEvent(ctx context.Context, tweetId string) *app_errors.AppError {
 	serviceCtx, span := s.tracer.Start(ctx, "AdsService.AddProfileVisitedEvent")
 	defer span.End()
 
 	uuid, err := gocql.ParseUUID(tweetId)
 	if err != nil {
-
+		span.SetStatus(codes.Error, err.Error())
 		return &app_errors.AppError{422, "Invalid UUID"}
 	}
 
+	authUser := ctx.Value("authUser").(model.AuthUser)
+
 	e := model.ProfileVisitedEvent{
-		Username: username,
+		Username: authUser.Username,
 		TweetId:  uuid,
 	}
 
@@ -46,6 +49,14 @@ func (s *AdsService) AddProfileVisitedEvent(ctx context.Context, tweetId string,
 	}
 
 	//TODO: update reports
+
+	date := time.Now()
+
+	err = s.reportsRepository.UpsertMonthlyReportProfileVisitsCount(serviceCtx, tweetId, int64(date.Year()), int64(date.Month()))
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return &app_errors.AppError{500, ""}
+	}
 
 	return nil
 }
@@ -80,15 +91,39 @@ func (s *AdsService) AddTweetViewedEvent(ctx context.Context, tweetId string, vi
 }
 
 func (s *AdsService) GetMonthlyReport(ctx context.Context, tweetId string, year int64, month int64) (*model.Report, *app_errors.AppError) {
-	_, span := s.tracer.Start(ctx, "AdsService.GetMonthlyReport")
+	serviceCtx, span := s.tracer.Start(ctx, "AdsService.GetMonthlyReport")
 	defer span.End()
 
-	return nil, nil
+	//TODO: access check
+
+	r, err := s.reportsRepository.GetMonthlyReport(serviceCtx, tweetId, year, month)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return nil, &app_errors.AppError{500, ""}
+	}
+
+	if r == nil {
+		return &model.Report{TweetId: tweetId}, nil
+	}
+
+	return r, nil
 }
 
 func (s *AdsService) GetDailyReport(ctx context.Context, tweetId string, year int64, day int64, month int64) (*model.Report, *app_errors.AppError) {
-	_, span := s.tracer.Start(ctx, "AdsService.GetDailyReport")
+	serviceCtx, span := s.tracer.Start(ctx, "AdsService.GetDailyReport")
 	defer span.End()
+
+	//TODO: access check
+
+	r, err := s.reportsRepository.GetDailyReport(serviceCtx, tweetId, year, month, day)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return nil, &app_errors.AppError{500, ""}
+	}
+
+	if r == nil {
+		return &model.Report{TweetId: tweetId}, nil
+	}
 
 	return nil, nil
 }

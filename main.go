@@ -66,10 +66,10 @@ func main() {
 		jwt.ExtractJWTUserMiddleware(tracer),
 	)
 
-	router.HandleFunc("/users/{tweetId}/{username}/visit/", adsController.AddProfileVisitedEvent).Methods("POST")
-	router.HandleFunc("/users/{tweetId}/view/", adsController.AddTweetViewedEvent).Methods("POST")
-	router.HandleFunc("/ads/{id}/reports/{year}/{month}/", adsController.GetMonthlyReport).Methods("GET")
-	router.HandleFunc("/ads/{id}/reports/{year}/{month}/{day}/", adsController.GetDailyReport).Methods("GET")
+	router.HandleFunc("/{tweetId}/visit/", adsController.AddProfileVisitedEvent).Methods("POST")
+	router.HandleFunc("/{tweetId}/view/", adsController.AddTweetViewedEvent).Methods("POST")
+	router.HandleFunc("/{tweetId}/reports/{year}/{month}/", adsController.GetMonthlyReport).Methods("GET")
+	router.HandleFunc("/{tweetId}/reports/{year}/{month}/{day}/", adsController.GetDailyReport).Methods("GET")
 
 	allowedHeaders := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"})

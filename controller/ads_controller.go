@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/FTN-TwitterClone/ads/controller/json"
 	"github.com/FTN-TwitterClone/ads/model"
 	"github.com/FTN-TwitterClone/ads/service"
@@ -28,10 +29,9 @@ func (c *AdsController) AddProfileVisitedEvent(w http.ResponseWriter, req *http.
 	ctx, span := c.tracer.Start(req.Context(), "AdsController.AddProfileVisitedEvent")
 	defer span.End()
 
-	username := mux.Vars(req)["username"]
 	tweetId := mux.Vars(req)["tweetId"]
 
-	appErr := c.adsService.AddProfileVisitedEvent(ctx, tweetId, username)
+	appErr := c.adsService.AddProfileVisitedEvent(ctx, tweetId)
 	if appErr != nil {
 		span.SetStatus(codes.Error, appErr.Error())
 		http.Error(w, appErr.Message, appErr.Code)
@@ -64,7 +64,15 @@ func (c *AdsController) GetMonthlyReport(w http.ResponseWriter, req *http.Reques
 	ctx, span := c.tracer.Start(req.Context(), "AdsController.GetMonthlyReport")
 	defer span.End()
 
-	tweetIdString := mux.Vars(req)["id"]
+	authUser := ctx.Value("authUser").(model.AuthUser)
+
+	if authUser.Role != "ROLE_BUSINESS" {
+		span.SetStatus(codes.Error, fmt.Sprintf("%s not allowed!", authUser.Role))
+		http.Error(w, "", 403)
+		return
+	}
+
+	tweetIdString := mux.Vars(req)["tweetId"]
 
 	year, err := strconv.ParseInt(mux.Vars(req)["year"], 10, 64)
 	if err != nil {
@@ -101,7 +109,15 @@ func (c *AdsController) GetDailyReport(w http.ResponseWriter, req *http.Request)
 	ctx, span := c.tracer.Start(req.Context(), "AdsController.GetMonthlyReport")
 	defer span.End()
 
-	tweetIdString := mux.Vars(req)["id"]
+	authUser := ctx.Value("authUser").(model.AuthUser)
+
+	if authUser.Role != "ROLE_BUSINESS" {
+		span.SetStatus(codes.Error, fmt.Sprintf("%s not allowed!", authUser.Role))
+		http.Error(w, "", 403)
+		return
+	}
+
+	tweetIdString := mux.Vars(req)["tweetId"]
 
 	year, err := strconv.ParseInt(mux.Vars(req)["year"], 10, 64)
 	if err != nil {
