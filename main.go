@@ -66,6 +66,7 @@ func main() {
 		jwt.ExtractJWTUserMiddleware(tracer),
 	)
 
+	router.HandleFunc("/{tweetId}/info/", adsController.GetAdInfo).Methods("GET")
 	router.HandleFunc("/{tweetId}/visit/", adsController.AddProfileVisitedEvent).Methods("POST")
 	router.HandleFunc("/{tweetId}/view/", adsController.AddTweetViewedEvent).Methods("POST")
 	router.HandleFunc("/{tweetId}/reports/{year}/{month}/", adsController.GetMonthlyReport).Methods("GET")

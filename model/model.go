@@ -13,12 +13,12 @@ type AuthUser struct {
 }
 
 type AdInfo struct {
-	TweetId  gocql.UUID
-	PostedBy string
-	Town     string
-	MinAge   int32
-	MaxAge   int32
-	Gender   string
+	TweetId  gocql.UUID `json:"tweetId"`
+	PostedBy string     `json:"postedBy"`
+	Town     string     `json:"town"`
+	MinAge   int32      `json:"minAge"`
+	MaxAge   int32      `json:"maxAge"`
+	Gender   string     `json:"gender"`
 }
 
 type TweetLikedEvent struct {

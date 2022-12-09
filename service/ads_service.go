@@ -26,6 +26,26 @@ func NewAdsService(adsRepository repository.EventsRepository, reportsRepository 
 	}
 }
 
+func (s *AdsService) GetAdInfo(ctx context.Context, tweetId string) (*model.AdInfo, *app_errors.AppError) {
+	serviceCtx, span := s.tracer.Start(ctx, "AdsService.GetAdInfo")
+	defer span.End()
+
+	authUser := ctx.Value("authUser").(model.AuthUser)
+
+	adInfo, err := s.eventsRepository.GetAdInfo(serviceCtx, tweetId)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return nil, &app_errors.AppError{500, ""}
+	}
+
+	if adInfo.PostedBy != authUser.Username {
+		span.SetStatus(codes.Error, fmt.Sprintf("User %s doesn't have access!", authUser.Username))
+		return nil, &app_errors.AppError{403, ""}
+	}
+
+	return adInfo, nil
+}
+
 func (s *AdsService) AddProfileVisitedEvent(ctx context.Context, tweetId string) *app_errors.AppError {
 	serviceCtx, span := s.tracer.Start(ctx, "AdsService.AddProfileVisitedEvent")
 	defer span.End()

@@ -25,6 +25,30 @@ func NewAdsController(tweetService *service.AdsService, tracer trace.Tracer) *Ad
 	}
 }
 
+func (c *AdsController) GetAdInfo(w http.ResponseWriter, req *http.Request) {
+	ctx, span := c.tracer.Start(req.Context(), "AdsController.AddProfileVisitedEvent")
+	defer span.End()
+
+	authUser := ctx.Value("authUser").(model.AuthUser)
+
+	if authUser.Role != "ROLE_BUSINESS" {
+		span.SetStatus(codes.Error, fmt.Sprintf("%s not allowed!", authUser.Role))
+		http.Error(w, "", 403)
+		return
+	}
+
+	tweetId := mux.Vars(req)["tweetId"]
+
+	adInfo, appErr := c.adsService.GetAdInfo(ctx, tweetId)
+	if appErr != nil {
+		span.SetStatus(codes.Error, appErr.Error())
+		http.Error(w, appErr.Message, appErr.Code)
+		return
+	}
+
+	json.EncodeJson(w, &adInfo)
+}
+
 func (c *AdsController) AddProfileVisitedEvent(w http.ResponseWriter, req *http.Request) {
 	ctx, span := c.tracer.Start(req.Context(), "AdsController.AddProfileVisitedEvent")
 	defer span.End()
