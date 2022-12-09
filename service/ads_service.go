@@ -37,9 +37,12 @@ func (s *AdsService) AddProfileVisitedEvent(ctx context.Context, tweetId string)
 
 	authUser := ctx.Value("authUser").(model.AuthUser)
 
+	now := time.Now()
+
 	e := model.ProfileVisitedEvent{
 		Username: authUser.Username,
 		TweetId:  uuid,
+		Time:     now,
 	}
 
 	err = s.eventsRepository.SaveProfileVisitedEvent(serviceCtx, &e)
@@ -48,15 +51,13 @@ func (s *AdsService) AddProfileVisitedEvent(ctx context.Context, tweetId string)
 		return &app_errors.AppError{500, ""}
 	}
 
-	date := time.Now()
-
-	err = s.reportsRepository.UpsertMonthlyReportProfileVisitsCount(serviceCtx, tweetId, int64(date.Year()), int64(date.Month()))
+	err = s.reportsRepository.UpsertMonthlyReportProfileVisitsCount(serviceCtx, tweetId, int64(now.Year()), int64(now.Month()))
 	if err != nil {
 		span.SetStatus(codes.Error, err.Error())
 		return &app_errors.AppError{500, ""}
 	}
 
-	err = s.reportsRepository.UpsertDailyReportProfileVisitsCount(serviceCtx, tweetId, int64(date.Year()), int64(date.Month()), int64(date.Day()))
+	err = s.reportsRepository.UpsertDailyReportProfileVisitsCount(serviceCtx, tweetId, int64(now.Year()), int64(now.Month()), int64(now.Day()))
 	if err != nil {
 		span.SetStatus(codes.Error, err.Error())
 		return &app_errors.AppError{500, ""}
@@ -77,10 +78,14 @@ func (s *AdsService) AddTweetViewedEvent(ctx context.Context, tweetId string, vi
 
 	authUser := ctx.Value("authUser").(model.AuthUser)
 
+	now := time.Now()
+	loc := now.Location()
+
 	e := model.TweetViewedEvent{
 		Username: authUser.Username,
 		TweetId:  uuid,
 		ViewTime: viewTime.ViewTime,
+		Time:     now,
 	}
 
 	err = s.eventsRepository.SaveTweetViewedEvent(serviceCtx, &e)
@@ -89,7 +94,33 @@ func (s *AdsService) AddTweetViewedEvent(ctx context.Context, tweetId string, vi
 		return &app_errors.AppError{500, ""}
 	}
 
-	//TODO: update reports
+	monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, loc)
+
+	monthAvg, err := s.eventsRepository.GetAverageTweetViewTime(serviceCtx, uuid, monthStart, now)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return &app_errors.AppError{500, ""}
+	}
+
+	err = s.reportsRepository.UpsertMonthlyReportAverageProfileViewTime(serviceCtx, tweetId, int64(now.Year()), int64(now.Month()), int64(monthAvg))
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return &app_errors.AppError{500, ""}
+	}
+
+	dayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
+
+	dayAvg, err := s.eventsRepository.GetAverageTweetViewTime(serviceCtx, uuid, dayStart, now)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return &app_errors.AppError{500, ""}
+	}
+
+	err = s.reportsRepository.UpsertDailyReportAverageProfileViewTime(serviceCtx, tweetId, int64(now.Year()), int64(now.Month()), int64(now.Day()), int64(dayAvg))
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return &app_errors.AppError{500, ""}
+	}
 
 	return nil
 }
@@ -113,7 +144,7 @@ func (s *AdsService) GetMonthlyReport(ctx context.Context, tweetId string, year 
 	return r, nil
 }
 
-func (s *AdsService) GetDailyReport(ctx context.Context, tweetId string, year int64, day int64, month int64) (*model.Report, *app_errors.AppError) {
+func (s *AdsService) GetDailyReport(ctx context.Context, tweetId string, year int64, month int64, day int64) (*model.Report, *app_errors.AppError) {
 	serviceCtx, span := s.tracer.Start(ctx, "AdsService.GetDailyReport")
 	defer span.End()
 
@@ -129,5 +160,5 @@ func (s *AdsService) GetDailyReport(ctx context.Context, tweetId string, year in
 		return &model.Report{TweetId: tweetId}, nil
 	}
 
-	return nil, nil
+	return r, nil
 }

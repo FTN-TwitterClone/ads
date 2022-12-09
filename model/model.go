@@ -24,22 +24,26 @@ type AdInfo struct {
 type TweetLikedEvent struct {
 	Username string
 	TweetId  gocql.UUID
+	Time     time.Time
 }
 
 type TweetUnlikedEvent struct {
 	Username string
 	TweetId  gocql.UUID
+	Time     time.Time
 }
 
 type TweetViewedEvent struct {
 	Username string
 	TweetId  gocql.UUID
 	ViewTime int32
+	Time     time.Time
 }
 
 type ProfileVisitedEvent struct {
 	Username string
 	TweetId  gocql.UUID
+	Time     time.Time
 }
 
 type TweetViewTime struct {

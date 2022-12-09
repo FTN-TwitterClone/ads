@@ -82,6 +82,12 @@ func (r *MongoReportsRepository) GetDailyReport(ctx context.Context, tweetId str
 		return nil, nil
 	}
 
+	err := res.Decode(&report)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
+	}
+
 	return &report, nil
 }
 

@@ -65,9 +65,12 @@ func (s *gRPCAdsService) SaveLikeEvent(ctx context.Context, likeEvent *ads.LikeE
 		return nil, err
 	}
 
+	now := time.Now()
+
 	e := model.TweetLikedEvent{
 		Username: likeEvent.Username,
 		TweetId:  tweetId,
+		Time:     now,
 	}
 
 	err = s.eventsRepository.SaveTweetLikedEvent(serviceCtx, &e)
@@ -76,15 +79,13 @@ func (s *gRPCAdsService) SaveLikeEvent(ctx context.Context, likeEvent *ads.LikeE
 		return nil, err
 	}
 
-	date := time.Now()
-
-	err = s.reportsRepository.UpsertMonthlyReportLikesCount(serviceCtx, likeEvent.TweetId, int64(date.Year()), int64(date.Month()))
+	err = s.reportsRepository.UpsertMonthlyReportLikesCount(serviceCtx, likeEvent.TweetId, int64(now.Year()), int64(now.Month()))
 	if err != nil {
 		span.SetStatus(codes.Error, err.Error())
 		return nil, err
 	}
 
-	err = s.reportsRepository.UpsertDailyReportLikesCount(serviceCtx, likeEvent.TweetId, int64(date.Year()), int64(date.Month()), int64(date.Day()))
+	err = s.reportsRepository.UpsertDailyReportLikesCount(serviceCtx, likeEvent.TweetId, int64(now.Year()), int64(now.Month()), int64(now.Day()))
 	if err != nil {
 		span.SetStatus(codes.Error, err.Error())
 		return nil, err
@@ -103,9 +104,12 @@ func (s *gRPCAdsService) SaveUnlikeEvent(ctx context.Context, unlikeEvent *ads.U
 		return nil, err
 	}
 
+	now := time.Now()
+
 	e := model.TweetUnlikedEvent{
 		Username: unlikeEvent.Username,
 		TweetId:  tweetId,
+		Time:     now,
 	}
 
 	err = s.eventsRepository.SaveTweetUnlikedEvent(serviceCtx, &e)
@@ -114,15 +118,13 @@ func (s *gRPCAdsService) SaveUnlikeEvent(ctx context.Context, unlikeEvent *ads.U
 		return nil, err
 	}
 
-	date := time.Now()
-
-	err = s.reportsRepository.UpsertMonthlyReportUnlikesCount(serviceCtx, unlikeEvent.TweetId, int64(date.Year()), int64(date.Month()))
+	err = s.reportsRepository.UpsertMonthlyReportUnlikesCount(serviceCtx, unlikeEvent.TweetId, int64(now.Year()), int64(now.Month()))
 	if err != nil {
 		span.SetStatus(codes.Error, err.Error())
 		return nil, err
 	}
 
-	err = s.reportsRepository.UpsertDailyReportUnlikesCount(serviceCtx, unlikeEvent.TweetId, int64(date.Year()), int64(date.Month()), int64(date.Day()))
+	err = s.reportsRepository.UpsertDailyReportUnlikesCount(serviceCtx, unlikeEvent.TweetId, int64(now.Year()), int64(now.Month()), int64(now.Day()))
 	if err != nil {
 		span.SetStatus(codes.Error, err.Error())
 		return nil, err

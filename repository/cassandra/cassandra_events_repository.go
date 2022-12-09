@@ -123,7 +123,7 @@ func (r *CassandraEventsRepository) SaveTweetLikedEvent(ctx context.Context, twe
 	defer span.End()
 
 	err := r.session.Query("INSERT INTO tweet_liked_events(tweet_id, id, username) VALUES (?, ?, ?)").
-		Bind(tweetLikedEvent.TweetId, gocql.TimeUUID(), tweetLikedEvent.Username).
+		Bind(tweetLikedEvent.TweetId, gocql.UUIDFromTime(tweetLikedEvent.Time.UTC()), tweetLikedEvent.Username).
 		Exec()
 
 	if err != nil {
@@ -139,7 +139,7 @@ func (r *CassandraEventsRepository) SaveTweetUnlikedEvent(ctx context.Context, t
 	defer span.End()
 
 	err := r.session.Query("INSERT INTO tweet_unliked_events(tweet_id, id, username) VALUES (?, ?, ?)").
-		Bind(tweetUnlikedEvent.TweetId, gocql.TimeUUID(), tweetUnlikedEvent.Username).
+		Bind(tweetUnlikedEvent.TweetId, gocql.UUIDFromTime(tweetUnlikedEvent.Time.UTC()), tweetUnlikedEvent.Username).
 		Exec()
 
 	if err != nil {
@@ -155,7 +155,7 @@ func (r *CassandraEventsRepository) SaveTweetViewedEvent(ctx context.Context, tw
 	defer span.End()
 
 	err := r.session.Query("INSERT INTO tweet_viewed_events(tweet_id, id, username, view_time) VALUES (?, ?, ?, ?)").
-		Bind(tweetViewedEvent.TweetId, gocql.TimeUUID(), tweetViewedEvent.Username, tweetViewedEvent.ViewTime).
+		Bind(tweetViewedEvent.TweetId, gocql.UUIDFromTime(tweetViewedEvent.Time.UTC()), tweetViewedEvent.Username, tweetViewedEvent.ViewTime).
 		Exec()
 
 	if err != nil {
@@ -171,7 +171,7 @@ func (r *CassandraEventsRepository) SaveProfileVisitedEvent(ctx context.Context,
 	defer span.End()
 
 	err := r.session.Query("INSERT INTO profile_visited_events(tweet_id, id, username) VALUES (?, ?, ?)").
-		Bind(profileVisitedEvent.TweetId, gocql.TimeUUID(), profileVisitedEvent.Username).
+		Bind(profileVisitedEvent.TweetId, gocql.UUIDFromTime(profileVisitedEvent.Time.UTC()), profileVisitedEvent.Username).
 		Exec()
 
 	if err != nil {
@@ -186,16 +186,16 @@ func (r *CassandraEventsRepository) GetAverageTweetViewTime(ctx context.Context,
 	_, span := r.tracer.Start(ctx, "CassandraAdsRepository.GetAverageTweetViewTime")
 	defer span.End()
 
-	var visitsCount int
+	var viewTime int
 
 	err := r.session.Query("SELECT AVG(view_time) FROM tweet_viewed_events WHERE tweet_id = ? AND id > maxTimeuuid(?) AND id < minTimeuuid(?)").
-		Bind(tweetId, from, to).
-		Scan(&visitsCount)
+		Bind(tweetId, from.UTC(), to.UTC()).
+		Scan(&viewTime)
 
 	if err != nil {
 		span.SetStatus(codes.Error, err.Error())
 		return 0, err
 	}
 
-	return visitsCount, err
+	return viewTime, err
 }
