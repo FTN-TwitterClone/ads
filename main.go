@@ -5,14 +5,21 @@ import (
 	"github.com/FTN-TwitterClone/ads/controller"
 	"github.com/FTN-TwitterClone/ads/controller/jwt"
 	"github.com/FTN-TwitterClone/ads/repository/cassandra"
+	"github.com/FTN-TwitterClone/ads/repository/mongo"
 	"github.com/FTN-TwitterClone/ads/service"
 	"github.com/FTN-TwitterClone/ads/tls"
 	"github.com/FTN-TwitterClone/ads/tracing"
+	"github.com/FTN-TwitterClone/grpc-stubs/proto/ads"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/reflection"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -35,15 +42,20 @@ func main() {
 	defer func() { _ = tp.Shutdown(ctx) }()
 	otel.SetTracerProvider(tp)
 	// Finally, set the tracer that can be used for this package.
-	tracer := tp.Tracer("tweet")
+	tracer := tp.Tracer("ads")
 	otel.SetTextMapPropagator(propagation.TraceContext{})
 
-	adsRepository, err := cassandra.NewCassandraAdsRepository(tracer)
+	eventsRepository, err := cassandra.NewCassandraEventsRepository(tracer)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	adsService := service.NewAdsService(adsRepository, tracer)
+	reportsRepository, err := mongo.NewMongoReportsRepository(tracer)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	adsService := service.NewAdsService(eventsRepository, reportsRepository, tracer)
 
 	adsController := controller.NewAdsController(adsService, tracer)
 
@@ -54,8 +66,11 @@ func main() {
 		jwt.ExtractJWTUserMiddleware(tracer),
 	)
 
-	router.HandleFunc("/users/{tweetId}/{username}/visit/", adsController.AddProfileVisitedEvent).Methods("POST")
-	router.HandleFunc("/ads/{id}/reports/{from}/{to}/", adsController.GetReport).Methods("GET")
+	router.HandleFunc("/{tweetId}/info/", adsController.GetAdInfo).Methods("GET")
+	router.HandleFunc("/{tweetId}/visit/", adsController.AddProfileVisitedEvent).Methods("POST")
+	router.HandleFunc("/{tweetId}/view/", adsController.AddTweetViewedEvent).Methods("POST")
+	router.HandleFunc("/{tweetId}/reports/{year}/{month}/", adsController.GetMonthlyReport).Methods("GET")
+	router.HandleFunc("/{tweetId}/reports/{year}/{month}/{day}/", adsController.GetDailyReport).Methods("GET")
 
 	allowedHeaders := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"})
@@ -80,6 +95,25 @@ func main() {
 			}
 		}
 	}()
+
+	lis, err := net.Listen("tcp", "0.0.0.0:9001")
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+
+	creds := credentials.NewTLS(tls.GetgRPCServerTLSConfig())
+
+	grpcServer := grpc.NewServer(
+		grpc.Creds(creds),
+		grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()),
+	)
+
+	ads.RegisterAdsServiceServer(grpcServer, service.NewgRPCAdsService(tracer, eventsRepository, reportsRepository))
+	reflection.Register(grpcServer)
+	err = grpcServer.Serve(lis)
+	if err != nil {
+		return
+	}
 
 	<-quit
 
