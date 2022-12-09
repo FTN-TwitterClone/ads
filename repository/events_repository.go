@@ -9,6 +9,7 @@ import (
 
 type EventsRepository interface {
 	SaveAdInfo(ctx context.Context, adInfo *model.AdInfo) error
+	GetAdInfo(ctx context.Context, tweetId string) (*model.AdInfo, error)
 	SaveTweetLikedEvent(ctx context.Context, tweetLikedEvent *model.TweetLikedEvent) error
 	SaveTweetUnlikedEvent(ctx context.Context, tweetUnlikedEvent *model.TweetUnlikedEvent) error
 	SaveTweetViewedEvent(ctx context.Context, tweetViewedEvent *model.TweetViewedEvent) error

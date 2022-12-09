@@ -118,6 +118,24 @@ func (r *CassandraEventsRepository) SaveAdInfo(ctx context.Context, adInfo *mode
 	return nil
 }
 
+func (r *CassandraEventsRepository) GetAdInfo(ctx context.Context, tweetId string) (*model.AdInfo, error) {
+	_, span := r.tracer.Start(ctx, "CassandraEventsRepository.GetAdInfo")
+	defer span.End()
+
+	var adInfo model.AdInfo
+
+	err := r.session.Query("SELECT tweet_id, posted_by, town, min_age, max_age, gender FROM ad_info WHERE tweet_id = ?").
+		Bind(tweetId).
+		Scan(&adInfo.TweetId, &adInfo.PostedBy, &adInfo.Town, &adInfo.MinAge, &adInfo.MaxAge, &adInfo.Gender)
+
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
+	}
+
+	return &adInfo, nil
+}
+
 func (r *CassandraEventsRepository) SaveTweetLikedEvent(ctx context.Context, tweetLikedEvent *model.TweetLikedEvent) error {
 	_, span := r.tracer.Start(ctx, "CassandraEventsRepository.SaveTweetLikedEvent")
 	defer span.End()

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/FTN-TwitterClone/ads/app_errors"
 	"github.com/FTN-TwitterClone/ads/model"
 	"github.com/FTN-TwitterClone/ads/repository"
@@ -129,7 +130,18 @@ func (s *AdsService) GetMonthlyReport(ctx context.Context, tweetId string, year 
 	serviceCtx, span := s.tracer.Start(ctx, "AdsService.GetMonthlyReport")
 	defer span.End()
 
-	//TODO: access check
+	authUser := ctx.Value("authUser").(model.AuthUser)
+
+	adInfo, err := s.eventsRepository.GetAdInfo(serviceCtx, tweetId)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return nil, &app_errors.AppError{500, ""}
+	}
+
+	if adInfo.PostedBy != authUser.Username {
+		span.SetStatus(codes.Error, fmt.Sprintf("User %s doesn't have access!", authUser.Username))
+		return nil, &app_errors.AppError{403, ""}
+	}
 
 	r, err := s.reportsRepository.GetMonthlyReport(serviceCtx, tweetId, year, month)
 	if err != nil {
@@ -148,7 +160,18 @@ func (s *AdsService) GetDailyReport(ctx context.Context, tweetId string, year in
 	serviceCtx, span := s.tracer.Start(ctx, "AdsService.GetDailyReport")
 	defer span.End()
 
-	//TODO: access check
+	authUser := ctx.Value("authUser").(model.AuthUser)
+
+	adInfo, err := s.eventsRepository.GetAdInfo(serviceCtx, tweetId)
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return nil, &app_errors.AppError{500, ""}
+	}
+
+	if adInfo.PostedBy != authUser.Username {
+		span.SetStatus(codes.Error, fmt.Sprintf("User %s doesn't have access!", authUser.Username))
+		return nil, &app_errors.AppError{403, ""}
+	}
 
 	r, err := s.reportsRepository.GetDailyReport(serviceCtx, tweetId, year, month, day)
 	if err != nil {
