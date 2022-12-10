@@ -12,35 +12,51 @@ type AuthUser struct {
 	Exp      time.Time
 }
 
+type AdInfo struct {
+	TweetId  gocql.UUID `json:"tweetId"`
+	PostedBy string     `json:"postedBy"`
+	Town     string     `json:"town"`
+	MinAge   int32      `json:"minAge"`
+	MaxAge   int32      `json:"maxAge"`
+	Gender   string     `json:"gender"`
+}
+
 type TweetLikedEvent struct {
 	Username string
 	TweetId  gocql.UUID
+	Time     time.Time
 }
 
 type TweetUnlikedEvent struct {
 	Username string
 	TweetId  gocql.UUID
+	Time     time.Time
 }
 
 type TweetViewedEvent struct {
 	Username string
 	TweetId  gocql.UUID
 	ViewTime int32
+	Time     time.Time
 }
 
 type ProfileVisitedEvent struct {
 	Username string
 	TweetId  gocql.UUID
+	Time     time.Time
+}
+
+type TweetViewTime struct {
+	ViewTime int32 `json:"viewTime"`
 }
 
 type Report struct {
-	Id                   gocql.UUID `json:"id"`
-	TweetId              gocql.UUID `json:"tweetId"`
-	From                 time.Time  `json:"from"`
-	To                   time.Time  `json:"to"`
-	TimeGenerated        time.Time  `json:"timeGenerated"`
-	TweetsLiked          int        `json:"tweetsLiked"`
-	TweetsUnliked        int        `json:"tweetsUnliked"`
-	AverageTweetViewTime int        `json:"averageTweetViewTime"`
-	ProfileVisits        int        `json:"profileVisits"`
+	TweetId         string `json:"tweetId" bson:"tweetId"`
+	Year            int64  `json:"year" bson:"year"`
+	Month           int64  `json:"month" bson:"month"`
+	Day             int64  `json:"day" bson:"day"`
+	LikesCount      int    `json:"likesCount" bson:"likesCount"`
+	UnlikesCount    int    `json:"unlikesCount" bson:"unlikesCount"`
+	ProfileVisits   int    `json:"profileVisits" bson:"profileVisits"`
+	AverageViewTime int    `json:"averageViewTime" bson:"averageViewTime"`
 }
