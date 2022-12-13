@@ -103,7 +103,7 @@ func migrateDB() error {
 }
 
 func (r *CassandraEventsRepository) SaveAdInfo(ctx context.Context, adInfo *model.AdInfo) error {
-	_, span := r.tracer.Start(ctx, "CassandraEventsRepository.SaveTweetLikedEvent")
+	_, span := r.tracer.Start(ctx, "CassandraEventsRepository.SaveAdInfo")
 	defer span.End()
 
 	err := r.session.Query("INSERT INTO ad_info(tweet_id, posted_by, town, min_age, max_age, gender) VALUES (?, ?, ?, ?, ?, ?)").
@@ -153,7 +153,7 @@ func (r *CassandraEventsRepository) SaveTweetLikedEvent(ctx context.Context, twe
 }
 
 func (r *CassandraEventsRepository) SaveTweetUnlikedEvent(ctx context.Context, tweetUnlikedEvent *model.TweetUnlikedEvent) error {
-	_, span := r.tracer.Start(ctx, "CassandraEventsRepository.SaveTweetLikedEvent")
+	_, span := r.tracer.Start(ctx, "CassandraEventsRepository.SaveTweetUnlikedEvent")
 	defer span.End()
 
 	err := r.session.Query("INSERT INTO tweet_unliked_events(tweet_id, id, username) VALUES (?, ?, ?)").
@@ -169,7 +169,7 @@ func (r *CassandraEventsRepository) SaveTweetUnlikedEvent(ctx context.Context, t
 }
 
 func (r *CassandraEventsRepository) SaveTweetViewedEvent(ctx context.Context, tweetViewedEvent *model.TweetViewedEvent) error {
-	_, span := r.tracer.Start(ctx, "CassandraEventsRepository.SaveTweetLikedEvent")
+	_, span := r.tracer.Start(ctx, "CassandraEventsRepository.SaveTweetViewedEvent")
 	defer span.End()
 
 	err := r.session.Query("INSERT INTO tweet_viewed_events(tweet_id, id, username, view_time) VALUES (?, ?, ?, ?)").
