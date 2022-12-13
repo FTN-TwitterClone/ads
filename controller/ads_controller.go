@@ -26,7 +26,7 @@ func NewAdsController(tweetService *service.AdsService, tracer trace.Tracer) *Ad
 }
 
 func (c *AdsController) GetAdInfo(w http.ResponseWriter, req *http.Request) {
-	ctx, span := c.tracer.Start(req.Context(), "AdsController.AddProfileVisitedEvent")
+	ctx, span := c.tracer.Start(req.Context(), "AdsController.GetAdInfo")
 	defer span.End()
 
 	authUser := ctx.Value("authUser").(model.AuthUser)
@@ -64,7 +64,7 @@ func (c *AdsController) AddProfileVisitedEvent(w http.ResponseWriter, req *http.
 }
 
 func (c *AdsController) AddTweetViewedEvent(w http.ResponseWriter, req *http.Request) {
-	ctx, span := c.tracer.Start(req.Context(), "AdsController.AddProfileVisitedEvent")
+	ctx, span := c.tracer.Start(req.Context(), "AdsController.AddTweetViewedEvent")
 	defer span.End()
 
 	tweetId := mux.Vars(req)["tweetId"]
@@ -130,7 +130,7 @@ func (c *AdsController) GetMonthlyReport(w http.ResponseWriter, req *http.Reques
 }
 
 func (c *AdsController) GetDailyReport(w http.ResponseWriter, req *http.Request) {
-	ctx, span := c.tracer.Start(req.Context(), "AdsController.GetMonthlyReport")
+	ctx, span := c.tracer.Start(req.Context(), "AdsController.GetDailyReport")
 	defer span.End()
 
 	authUser := ctx.Value("authUser").(model.AuthUser)
